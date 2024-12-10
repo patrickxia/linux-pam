@@ -12,7 +12,7 @@ backspaces in order for your password to be accepted.
 
 This is a modified version of `libpam_misc`. After building, use
 `LD_PRELOAD=build/libpam_misc/libpam_misc.so.0 passwd` to change your password
-to something with spaces. Then you can run /bin/login with the same `LD_PRELOAD`
+to something with backspaces. Then you can run /bin/login with the same `LD_PRELOAD`
 or you can also replace your system `libpam_misc.so.0` if you want for added
 security out-of-the-box.
 
