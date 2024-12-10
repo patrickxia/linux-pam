@@ -1,8 +1,27 @@
-Hello!
+# What is this?
 
-Thanks for downloading Linux-PAM.
+When authenticating with a password, this passes along literal backspaces. In
+the status quo, if you type something in like `supersecuer<BS><BS>repassword`
+it is interpreted as `supersecurepassword` and the backspaces correct your typos.
 
-NOTES:
+With these pam modifications, your password is the literal
+`supersecuer<BS><BS>repassword`, and you must make the typo and the two
+backspaces in order for your password to be accepted.
+
+# How do I use this?
+
+This is a modified version of `libpam_misc`. After building, use
+`LD_PRELOAD=build/libpam_misc/libpam_misc.so.0 passwd` to change your password
+to something with spaces. Then you can run /bin/login with the same `LD_PRELOAD`
+or you can also replace your system `libpam_misc.so.0` if you want for added
+security out-of-the-box.
+
+# Do I actually want this?
+
+No.
+
+
+# Upstream install notes
 
 How to use it is as follows:
 
