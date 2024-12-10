@@ -133,7 +133,7 @@ static int read_string(int echo, const char *prompt, char **retstr)
     struct termios term_before, term_tmp;
     char line[INPUTSIZE];
     struct sigaction old_sig;
-    int delay, nc = -1, have_term = 0;
+    int delay, nc = 0, have_term = 0;
     sigset_t oset, nset;
 
     D(("called with echo='%s', prompt='%s'.", echo ? "ON":"OFF" , prompt));
@@ -150,7 +150,7 @@ static int read_string(int echo, const char *prompt, char **retstr)
 	if (echo)
 	    term_tmp.c_lflag |= ICANON | ECHOCTL;
 	else
-	    term_tmp.c_lflag &= ~(ECHO);
+	    term_tmp.c_lflag &= ~(ICANON | ECHO);
 	have_term = 1;
 
 	/*
@@ -181,9 +181,14 @@ static int read_string(int echo, const char *prompt, char **retstr)
 	    D(("<failed to set alarm>"));
 	    break;
 	} else {
-	    if (have_term)
-		nc = read(STDIN_FILENO, line, INPUTSIZE-1);
-	    else                             /* we must read one line only */
+	    if (have_term) {
+	    	for (nc = 0; read(STDIN_FILENO, line + nc, 1) == 1; nc++) {
+          		if (nc == INPUTSIZE - 1 || line[nc] == '\n') {
+            			line[nc] = 0;
+            			break;
+			}
+		}
+          } else                             /* we must read one line only */
 		for (nc = 0; nc < INPUTSIZE-1 && (nc?line[nc-1]:0) != '\n';
 		     nc++) {
 		    int rv;
@@ -208,14 +213,6 @@ static int read_string(int echo, const char *prompt, char **retstr)
 	    } else if (nc > 0) {                 /* we got some user input */
 		D(("we got some user input"));
 
-		if (line[nc-1] == '\n') {     /* <NUL> terminate */
-		    line[--nc] = '\0';
-		} else {
-		    if (echo) {
-			fprintf(stderr, "\n");
-		    }
-		    line[nc] = '\0';
-		}
 		*retstr = strdup(line);
 		pam_overwrite_array(line);
 		if (!*retstr) {
